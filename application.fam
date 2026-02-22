@@ -9,8 +9,9 @@ App(
         "subghz",
     ],
     stack_size=2048,
+    fap_icon="icon.png",
     fap_category="RF",
-    fap_description="Simple SubGHz frequency sweeper with RSSI detection",
-    fap_author="SubSweep Hunter",
+    fap_description="SubGHz frequency sweeper with RSSI detection",
+    fap_author="SubSweepHunter",
     fap_version="1.0",
 )

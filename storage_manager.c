@@ -1,5 +1,4 @@
 #include "storage_manager.h"
-#include <storage/storage.h>
 #include <furi.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,10 +10,10 @@ struct StorageManager {
 };
 
 StorageManager* storage_manager_alloc(void) {
-    StorageManager* manager = malloc(sizeof(StorageManager));
-    manager->storage = NULL;
-    manager->initialized = false;
-    return manager;
+    StorageManager* m = malloc(sizeof(StorageManager));
+    m->storage = NULL;
+    m->initialized = false;
+    return m;
 }
 
 void storage_manager_free(StorageManager* manager) {
@@ -50,16 +49,13 @@ bool storage_manager_save_log(StorageManager* manager, AppState* state) {
     if(ok) {
         char buf[128];
         int len = snprintf(
-            buf,
-            sizeof(buf),
-            "Tick:%lu | Freq:%lu Hz | RSSI:%d dBm | Signals:%lu\n",
+            buf, sizeof(buf),
+            "Tick:%lu | Best:%lu Hz | RSSI:%d dBm | Sig:%lu\n",
             (unsigned long)furi_get_tick(),
             (unsigned long)state->best_frequency,
             (int)state->rssi_max,
             (unsigned long)state->signal_count);
-        if(len > 0) {
-            storage_file_write(file, buf, (uint16_t)len);
-        }
+        if(len > 0) storage_file_write(file, buf, (uint16_t)len);
         storage_file_close(file);
     }
 

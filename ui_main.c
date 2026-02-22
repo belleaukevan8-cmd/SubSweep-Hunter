@@ -4,12 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-/*
- * IMPORTANT: Le draw callback reçoit le "model" alloué par view_allocate_model.
- * Le context (via view_set_context) est reçu dans l'input_callback.
- * On stocke UiMain* dans le model pour que le draw y accède.
- */
-
 struct UiMain {
     View* view;
     AppState* state;
@@ -21,7 +15,6 @@ struct UiMain {
     void* result_ctx;
 };
 
-/* Le model contient juste un pointeur vers UiMain */
 typedef struct {
     UiMain* ui;
 } UiMainModel;
@@ -35,28 +28,33 @@ static void ui_main_draw_callback(Canvas* canvas, void* _model) {
     canvas_clear(canvas);
     canvas_set_font(canvas, FontPrimary);
     canvas_draw_str(canvas, 0, 10, "SubSweep Hunter");
-
     canvas_draw_line(canvas, 0, 12, 128, 12);
 
     canvas_set_font(canvas, FontSecondary);
 
-    // Sweep status
-    canvas_draw_str(canvas, 0, 23, s->sweep_active ? "Sweep: ON " : "Sweep: OFF");
+    /* Ligne 1: status sweep */
+    canvas_draw_str(canvas, 0, 23, s->sweep_active ? "[ SCANNING ]" : "[  STOPPED  ]");
 
-    // Frequency
-    char buf[32];
-    snprintf(buf, sizeof(buf), "Freq:%lu MHz", (unsigned long)(s->current_frequency / 1000000));
+    /* Ligne 2: bande courante */
+    const char* bname = (s->band_index < BAND_COUNT) ? s->bands[s->band_index].name : "?";
+    char buf[40];
+    snprintf(buf, sizeof(buf), "Band: %s MHz", bname);
     canvas_draw_str(canvas, 0, 33, buf);
 
-    // RSSI
-    snprintf(buf, sizeof(buf), "RSSI:%d dBm", (int)s->current_rssi);
+    /* Ligne 3: fréquence courante */
+    snprintf(buf, sizeof(buf), "Freq: %lu.%lu MHz",
+        (unsigned long)(s->current_frequency / 1000000),
+        (unsigned long)((s->current_frequency % 1000000) / 100000));
     canvas_draw_str(canvas, 0, 43, buf);
 
-    // Signals + threshold
-    snprintf(buf, sizeof(buf), "Sig:%lu Thr:%d", (unsigned long)s->signal_count, (int)s->threshold);
+    /* Ligne 4: RSSI */
+    snprintf(buf, sizeof(buf), "RSSI: %d dBm  Thr:%d", (int)s->current_rssi, (int)s->threshold);
     canvas_draw_str(canvas, 0, 53, buf);
 
-    // Boutons
+    /* Ligne 5: compteur */
+    snprintf(buf, sizeof(buf), "Signals: %lu", (unsigned long)s->signal_count);
+    canvas_draw_str(canvas, 0, 62, buf);
+
     elements_button_left(canvas, "Back");
     elements_button_center(canvas, s->sweep_active ? "Stop" : "Start");
     elements_button_right(canvas, "Result");
@@ -92,25 +90,16 @@ static bool ui_main_input_callback(InputEvent* event, void* context) {
 UiMain* ui_main_alloc(void) {
     UiMain* ui = malloc(sizeof(UiMain));
     ui->state = NULL;
-    ui->toggle_cb = NULL;
-    ui->toggle_ctx = NULL;
-    ui->quit_cb = NULL;
-    ui->quit_ctx = NULL;
-    ui->result_cb = NULL;
-    ui->result_ctx = NULL;
+    ui->toggle_cb = NULL; ui->toggle_ctx = NULL;
+    ui->quit_cb = NULL;   ui->quit_ctx = NULL;
+    ui->result_cb = NULL; ui->result_ctx = NULL;
 
     ui->view = view_alloc();
     view_set_context(ui->view, ui);
     view_set_draw_callback(ui->view, ui_main_draw_callback);
     view_set_input_callback(ui->view, ui_main_input_callback);
-
-    // Allouer le model et y stocker le pointeur UiMain
     view_allocate_model(ui->view, ViewModelTypeLockFree, sizeof(UiMainModel));
-    with_view_model(
-        ui->view,
-        UiMainModel * model,
-        { model->ui = ui; },
-        false);
+    with_view_model(ui->view, UiMainModel * m, { m->ui = ui; }, false);
 
     return ui;
 }
@@ -129,25 +118,15 @@ View* ui_main_get_view(UiMain* ui) {
 void ui_main_set_state(UiMain* ui, AppState* state) {
     furi_assert(ui);
     ui->state = state;
-    // Mettre à jour aussi dans le model
-    with_view_model(
-        ui->view,
-        UiMainModel * model,
-        { model->ui = ui; },
-        false);
+    with_view_model(ui->view, UiMainModel * m, { m->ui = ui; }, false);
 }
 
 void ui_main_set_toggle_callback(UiMain* ui, UiMainCallback cb, void* ctx) {
-    ui->toggle_cb = cb;
-    ui->toggle_ctx = ctx;
+    ui->toggle_cb = cb; ui->toggle_ctx = ctx;
 }
-
 void ui_main_set_quit_callback(UiMain* ui, UiMainCallback cb, void* ctx) {
-    ui->quit_cb = cb;
-    ui->quit_ctx = ctx;
+    ui->quit_cb = cb; ui->quit_ctx = ctx;
 }
-
 void ui_main_set_result_callback(UiMain* ui, UiMainCallback cb, void* ctx) {
-    ui->result_cb = cb;
-    ui->result_ctx = ctx;
+    ui->result_cb = cb; ui->result_ctx = ctx;
 }
