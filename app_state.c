@@ -1,15 +1,14 @@
 #include "app_state.h"
-#include <stdlib.h>
 
 void app_state_init(AppState* state) {
     state->sweep_active = false;
-    state->current_frequency = 433920000; // 433.92 MHz default
+    state->current_frequency = 433920000;
     state->current_rssi = -127;
     state->signal_count = 0;
     state->threshold = -80;
-    state->sweep_start_freq = 300000000; // 300 MHz
-    state->sweep_end_freq = 928000000;   // 928 MHz
-    state->step_size = 1000000;          // 1 MHz step
+    state->sweep_start_freq = 300000000;
+    state->sweep_end_freq = 928000000;
+    state->step_size = 1000000;
     state->rssi_max = -127;
     state->best_frequency = 433920000;
 }
@@ -38,7 +37,7 @@ void app_state_update_rssi(AppState* state, int16_t rssi) {
 bool app_state_next_frequency(AppState* state) {
     if(state->current_frequency + state->step_size > state->sweep_end_freq) {
         state->current_frequency = state->sweep_start_freq;
-        return false; // Sweep completed, wrapped around
+        return false;
     }
     state->current_frequency += state->step_size;
     return true;

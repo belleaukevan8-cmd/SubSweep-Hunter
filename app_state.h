@@ -15,3 +15,9 @@ typedef struct {
     int16_t rssi_max;
     uint32_t best_frequency;
 } AppState;
+
+void app_state_init(AppState* state);
+void app_state_reset(AppState* state);
+void app_state_increment_signal(AppState* state);
+void app_state_update_rssi(AppState* state, int16_t rssi);
+bool app_state_next_frequency(AppState* state);

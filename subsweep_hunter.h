@@ -1,10 +1,11 @@
 #pragma once
 
 #include <furi.h>
+#include <furi_hal.h>
+#include <furi_hal_subghz.h>
 #include <gui/gui.h>
 #include <gui/view_dispatcher.h>
 #include <storage/storage.h>
-#include <lib/subghz/subghz_tx_rx_worker.h>
 
 #include "app_state.h"
 #include "subghz_sweeper.h"
@@ -15,7 +16,7 @@
 typedef enum {
     SubSweepViewMain = 0,
     SubSweepViewResult,
-} SubSweepView;
+} SubSweepViewId;
 
 typedef struct {
     Gui* gui;
